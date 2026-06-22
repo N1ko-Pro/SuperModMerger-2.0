@@ -40,11 +40,12 @@ function send(channel: string, payload: unknown): void {
 
 function createWindow(): void {
  mainWindow = new BrowserWindow({
- width: 1180,
- height: 820,
+ width: 1200,
+ height: 1220,
  minWidth: 960,
  minHeight: 660,
- backgroundColor: "#0f1115",
+ backgroundColor: "#0a0a0c",
+ frame: false,
  show: false,
  webPreferences: {
  preload: path.join(__dirname, "preload.js"),
@@ -55,6 +56,8 @@ function createWindow(): void {
  const indexHtml = path.join(__dirname, "..", "..", "renderer", "index.html");
  void mainWindow.loadFile(indexHtml);
  mainWindow.once("ready-to-show", () => mainWindow?.show());
+ mainWindow.on("maximize", () => mainWindow?.webContents.send("win:state", { maximized: true }));
+ mainWindow.on("unmaximize", () => mainWindow?.webContents.send("win:state", { maximized: false }));
  mainWindow.on("closed", () => { mainWindow = null; });
 }
 
@@ -135,6 +138,95 @@ async function runMergeSmoke(): Promise<void> {
 }
 
 ipcMain.handle("app:getStatus", async () => buildStatus());
+
+ipcMain.on("win:minimize", () => mainWindow?.minimize());
+ipcMain.on("win:maximize", () => {
+ if (!mainWindow) return;
+ if (mainWindow.isMaximized()) mainWindow.unmaximize();
+ else mainWindow.maximize();
+});
+ipcMain.on("win:close", () => mainWindow?.close());
+
+const MOD_EXTENSIONS = ["pak", "zip", "7z", "rar"];
+const GAME_REL = path.join("steamapps", "common", "Dying Light The Beast", "ph_ft", "source", "data0.pak");
+
+/** Search local drives / Steam libraries for the game's data0.pak. */
+async function findBasePak(): Promise<string | null> {
+ const candidates: string[] = [];
+ const drives = "CDEFGHIJKLABMNOPQRSTUVWXYZ".split("");
+ const roots = [
+ "SteamLibrary",
+ path.join("Program Files (x86)", "Steam"),
+ path.join("Program Files", "Steam"),
+ "Steam",
+ path.join("Games", "Steam"),
+ ];
+ for (const d of drives) {
+ const base = d + ":\\";
+ for (const r of roots) candidates.push(path.join(base, r, GAME_REL));
+ }
+ // Parse Steam's libraryfolders.vdf to discover custom library locations.
+ const vdfPaths = [
+ "C:\\Program Files (x86)\\Steam\\steamapps\\libraryfolders.vdf",
+ "C:\\Program Files\\Steam\\steamapps\\libraryfolders.vdf",
+ ];
+ for (const vdf of vdfPaths) {
+ if (await exists(vdf)) {
+ try {
+ const txt = await fsp.readFile(vdf, "utf8");
+ const re = /"path"\s*"([^"]+)"/g;
+ let m: RegExpExecArray | null;
+ while ((m = re.exec(txt)) !== null) {
+ const libPath = m[1].replace(/\\\\/g, "\\");
+ candidates.push(path.join(libPath, GAME_REL));
+ }
+ } catch { /* ignore malformed vdf */ }
+ }
+ }
+ for (const c of candidates) {
+ if (await exists(c)) return c;
+ }
+ return null;
+}
+
+async function copyMods(filePaths: string[]): Promise<string[]> {
+ await ensureFolders();
+ const added: string[] = [];
+ for (const fp of filePaths || []) {
+ const ext = path.extname(fp).slice(1).toLowerCase();
+ if (!MOD_EXTENSIONS.includes(ext)) continue;
+ const dest = path.join(modsDir(), path.basename(fp));
+ try { await fsp.copyFile(fp, dest); added.push(path.basename(fp)); } catch { /* skip */ }
+ }
+ return added;
+}
+
+ipcMain.handle("app:autoFindBasePak", async () => {
+ const found = await findBasePak();
+ if (!found) return { found: false };
+ await ensureFolders();
+ const dest = path.join(libsDir(), "data0.pak");
+ await fsp.copyFile(found, dest);
+ return { found: true, source: found };
+});
+
+ipcMain.handle("app:selectMods", async () => {
+ if (!mainWindow) return [];
+ const res = await dialog.showOpenDialog(mainWindow, {
+ title: "Выберите моды",
+ properties: ["openFile", "multiSelections"],
+ filters: [{ name: "Моды", extensions: MOD_EXTENSIONS }],
+ });
+ if (res.canceled || res.filePaths.length === 0) return [];
+ return copyMods(res.filePaths);
+});
+
+ipcMain.handle("app:addModFiles", async (_e, filePaths: string[]) => copyMods(filePaths));
+
+ipcMain.handle("app:deleteMod", async (_e, name: string) => {
+ const target = path.join(modsDir(), path.basename(name));
+ try { await fsp.rm(target, { force: true }); return true; } catch { return false; }
+});
 
 ipcMain.handle("app:openPath", async (_e, which: string) => {
  const target = which === "mods" ? modsDir() : which === "output" ? outputDir() : libsDir();
