@@ -1,0 +1,45 @@
+{
+ "name": "super-mod-merger",
+ "version": "2.0.0",
+ "description": "Super Mod Merger - intelligent Dying Light mod merging tool (Electron edition)",
+ "main": "dist/electron/main.js",
+ "scripts": {
+  "typecheck": "tsc -p tsconfig.json",
+  "build": "node build.js",
+  "watch": "node build.js --watch",
+  "start": "electron .",
+  "dev": "node build.js && electron .",
+ "dist": "node build.js && electron-builder --win portable"
+ },
+ "build": {
+ "appId": "com.ankol.supermodmerger",
+ "productName": "Super Mod Merger",
+ "compression": "normal",
+ "directories": { "output": "release" },
+ "files": ["dist/**/*", "renderer/**/*", "package.json", "node_modules/**/*"],
+ "asarUnpack": ["node_modules/7zip-bin/**", "node_modules/node-unrar-js/**"],
+ "win": { "target": ["portable"] },
+ "portable": { "artifactName": "SuperModMerger-${version}-portable.exe" }
+ },
+ "author": "",
+ "license": "MIT",
+ "dependencies": {
+  "7zip-bin": "^5.2.0",
+  "antlr4ng": "^3.0.16",
+  "node-7z": "^3.0.0",
+  "node-unrar-js": "^2.0.2",
+  "yauzl": "^3.4.0",
+  "yazl": "^3.3.1"
+ },
+ "devDependencies": {
+  "@types/node": "^26.0.0",
+  "@types/node-7z": "^2.1.11",
+  "@types/yauzl": "^3.4.0",
+  "@types/yazl": "^3.3.1",
+  "antlr-ng": "^1.0.10",
+  "electron": "^42.4.1",
+  "electron-builder": "^26.15.3",
+  "esbuild": "^0.28.1",
+  "typescript": "^6.0.3"
+ }
+}

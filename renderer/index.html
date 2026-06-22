@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+ <meta charset="UTF-8" />
+ <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self';" />
+ <title>Super Mod Merger</title>
+ <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+ <div class="app">
+ <header class="topbar">
+ <div class="brand">
+ <div class="logo">SMM</div>
+ <div class="brand-text">
+ <h1>Super Mod Merger</h1>
+ <p class="sub">Умное слияние модов Dying Light</p>
+ </div>
+ </div>
+ <div class="ver">v2.0</div>
+ </header>
+
+ <main class="layout">
+ <section class="cards">
+ <div class="card" id="libsCard">
+ <div class="card-head"><h2>Игровые данные</h2><span class="badge" id="libsBadge">проверка...</span></div>
+ <p class="path" id="libsPath"></p>
+ <p class="hint">Положите сюда файл <b>data0.pak</b> из игры (папка LIBS).</p>
+ <div class="row">
+ <button class="btn" id="openLibs">Открыть папку</button>
+ <button class="btn ghost" id="importPak">Импорт data0.pak</button>
+ </div>
+ </div>
+
+ <div class="card" id="modsCard">
+ <div class="card-head"><h2>Моды для слияния</h2><span class="badge" id="modsBadge">0</span></div>
+ <p class="path" id="modsPath"></p>
+ <ul class="modlist" id="modList"></ul>
+ <div class="row">
+ <button class="btn" id="openMods">Открыть папку</button>
+ <button class="btn ghost" id="refresh">Обновить</button>
+ </div>
+ </div>
+
+ <div class="card settings">
+ <div class="card-head"><h2>Настройки</h2></div>
+ <label class="field"><span>Стратегия слияния</span>
+ <select id="strategy">
+ <option value="normal">Обычная (быстро)</option>
+ <option value="globalfix">Глобальное исправление</option>
+ </select>
+ </label>
+ <label class="field"><span>Конфликты кода</span>
+ <select id="codeConflict">
+ <option value="incoming">Авто — версия мода</option>
+ <option value="base">Авто — версия базы</option>
+ <option value="interactive">Спрашивать меня</option>
+ </select>
+ </label>
+ <label class="field"><span>Конфликты ассетов</span>
+ <select id="assetConflict">
+ <option value="largest">Наибольший файл</option>
+ <option value="smallest">Наименьший файл</option>
+ <option value="first">Первый</option>
+ <option value="last">Последний</option>
+ <option value="interactive">Спрашивать меня</option>
+ </select>
+ </label>
+ </div>
+ </section>
+
+ <section class="action">
+ <button class="merge-btn" id="mergeBtn" disabled>Слить моды</button>
+ <div class="progress" id="progressWrap" hidden>
+ <div class="bar"><div class="fill" id="progressFill"></div></div>
+ <div class="progress-meta"><span id="progressText">0%</span><span id="progressFile" class="pfile"></span></div>
+ </div>
+ </section>
+
+ <section class="result" id="resultPanel" hidden>
+ <div class="card-head"><h2>Слияние завершено</h2></div>
+ <div class="stats" id="statsGrid"></div>
+ <button class="btn" id="openOutput">Открыть папку с результатом</button>
+ </section>
+
+ <section class="logwrap">
+ <div class="card-head"><h2>Журнал</h2><button class="btn ghost small" id="clearLog">чистить</button></div>
+ <div class="log" id="log"></div>
+ </section>
+ </main>
+ </div>
+
+ <div class="modal-overlay" id="conflictModal" hidden>
+ <div class="modal" id="conflictBody"></div>
+ </div>
+
+ <script src="renderer.js"></script>
+</body>
+</html>
