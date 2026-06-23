@@ -2,9 +2,13 @@ const smm = window.api;
 let totalFiles = 0;
 let merging = false;
 let lastStatus = { hasBasePak: false, mods: [] };
+let lastStats = null;
 let busyMods = false;
 
 function el(id) { return document.getElementById(id); }
+
+/** Translate via the i18n engine, falling back to the raw key if it isn't ready. */
+function tr(key, params) { return window.i18n ? window.i18n.t(key, params) : key; }
 
 function escapeHtml(s) {
   return String(s)
@@ -57,8 +61,8 @@ function renderMods(mods) {
 
     const del = document.createElement("button");
     del.className = "mod-del";
-    del.title = "Удалить мод";
-    del.setAttribute("aria-label", "Удалить " + m);
+    del.title = tr("mods.deleteMod");
+    del.setAttribute("aria-label", tr("mods.deleteModAria", { name: m }));
     del.innerHTML = '<svg viewBox="0 0 16 16" width="13" height="13" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
     del.addEventListener("click", async () => {
       del.disabled = true;
@@ -78,13 +82,13 @@ async function refreshStatus() {
   el("libsPath").textContent = st.libsDir;
   const libsBadge = el("libsBadge");
   if (st.hasBasePak) {
-    libsBadge.textContent = "data0.pak найден";
+    libsBadge.textContent = tr("libs.badgeFound");
     libsBadge.className = "badge ok";
     el("libsHint").hidden = true;
     el("libsActions").hidden = true;
     el("libsStatus").hidden = false;
   } else {
-    libsBadge.textContent = "нет data0.pak";
+    libsBadge.textContent = tr("libs.badgeMissing");
     libsBadge.className = "badge bad";
     el("libsHint").hidden = false;
     el("libsActions").hidden = false;
@@ -109,9 +113,9 @@ async function addModsFromPaths(paths) {
   try {
     const added = await smm.addModFiles(paths);
     if (added && added.length) {
-      added.forEach((n) => appendLog("success", "Добавлен мод: " + n));
+      added.forEach((n) => appendLog("success", tr("msg.modAdded", { name: n })));
     } else {
-      appendLog("warning", "Не удалось добавить: поддерживаются .pak, .zip, .7z, .rar");
+      appendLog("warning", tr("msg.addFailed"));
     }
     await refreshStatus();
   } finally {
@@ -125,7 +129,7 @@ async function pickMods() {
   busyMods = true;
   try {
     const added = await smm.selectMods();
-    if (added && added.length) added.forEach((n) => appendLog("success", "Добавлен мод: " + n));
+    if (added && added.length) added.forEach((n) => appendLog("success", tr("msg.modAdded", { name: n })));
     await refreshStatus();
   } finally {
     busyMods = false;
@@ -166,17 +170,17 @@ async function autoFind() {
   const btn = el("autoFind");
   btn.disabled = true;
   btn.classList.add("loading");
-  appendLog("info", "Поиск data0.pak в установленной игре...");
+  appendLog("info", tr("msg.autoSearching"));
   try {
     const res = await smm.autoFindBasePak();
     if (res && res.found) {
-      appendLog("success", "Найдено: " + res.source);
+      appendLog("success", tr("msg.autoFound", { source: res.source }));
     } else {
-      appendLog("warning", "data0.pak не найден автоматически. Импортируйте файл вручную.");
+      appendLog("warning", tr("msg.autoNotFound"));
     }
     await refreshStatus();
   } catch (e) {
-    appendLog("error", "Ошибка авто-поиска: " + (e && e.message ? e.message : String(e)));
+    appendLog("error", tr("msg.autoError", { error: e && e.message ? e.message : String(e) }));
   } finally {
     btn.disabled = false;
     btn.classList.remove("loading");
@@ -185,12 +189,13 @@ async function autoFind() {
 
 /* ----------------------------- Results ---------------------------------- */
 function showResults(stats) {
+  lastStats = stats;
   const grid = el("statsGrid");
   const items = [
-    { num: stats.totalProcessed != null ? stats.totalProcessed : 0, lbl: "Обработано файлов" },
-    { num: stats.merged != null ? stats.merged : 0, lbl: "Слито умно" },
-    { num: stats.pathCorrections != null ? stats.pathCorrections : 0, lbl: "Исправлено путей" },
-    { num: stats.filesPackaged != null ? stats.filesPackaged : (stats.totalProcessed || 0), lbl: "Файлов в паке" },
+    { num: stats.totalProcessed != null ? stats.totalProcessed : 0, lbl: tr("result.statProcessed") },
+    { num: stats.merged != null ? stats.merged : 0, lbl: tr("result.statMerged") },
+    { num: stats.pathCorrections != null ? stats.pathCorrections : 0, lbl: tr("result.statPathFixed") },
+    { num: stats.filesPackaged != null ? stats.filesPackaged : (stats.totalProcessed || 0), lbl: tr("result.statPackaged") },
   ];
   grid.innerHTML = items.map((it) => `<div class="stat"><div class="num">${it.num}</div><div class="lbl">${it.lbl}</div></div>`).join("");
   el("resultPanel").hidden = false;
@@ -200,35 +205,35 @@ function handleEvent(evt) {
   switch (evt.type) {
     case "log": appendLog(evt.level, evt.message); break;
     case "modsFound":
-      appendLog("header", "════════ Слияние модов ════════");
-      appendLog("info", "Найдено модов для слияния: " + evt.count);
+      appendLog("header", tr("msg.mergeHeader"));
+      appendLog("info", tr("msg.modsFound", { count: evt.count }));
       (evt.mods || []).forEach((m, i) => appendLog("muted", "  " + (i + 1) + ". " + m));
       break;
     case "baseIndexed":
-      appendLog("success", "✓ Проиндексировано " + evt.count + " файлов из data0.pak за " + evt.ms + " мс");
+      appendLog("success", tr("msg.baseIndexed", { count: evt.count, ms: evt.ms }));
       break;
     case "modExtracted":
-      appendLog("success", "✓ Извлечено файлов: " + evt.files + " (" + evt.mod + ")");
+      appendLog("success", tr("msg.modExtracted", { files: evt.files, mod: evt.mod }));
       break;
     case "extracted":
-      appendLog("info", "Уникальных файлов после группировки: " + evt.groups);
+      appendLog("info", tr("msg.extracted", { groups: evt.groups }));
       break;
     case "pathFix":
-      appendLog("cyan", "Исправление путей в " + evt.mod + ":");
+      appendLog("cyan", tr("msg.pathFix", { mod: evt.mod }));
       (evt.fixes || []).forEach((f) => appendLog("muted", "  " + f.from + " → " + f.to));
       break;
     case "mergingFile":
-      appendLog("cyan", "⚙ Слияние: " + evt.file + " (версий: " + evt.versions + ")");
+      appendLog("cyan", tr("msg.mergingFile", { file: evt.file, versions: evt.versions }));
       break;
     case "processingStart":
       totalFiles = evt.total;
-      appendLog("info", "Обработка файлов: " + evt.total);
+      appendLog("info", tr("msg.processingStart", { total: evt.total }));
       break;
     case "progress": setProgress(evt.current, evt.total, evt.file); break;
     case "report": appendLog(evt.level === "error" ? "error" : "warning", "[" + evt.source + "] " + evt.message); break;
-    case "packaging": appendLog("info", "Упаковка результата..."); break;
-    case "assetResolved": appendLog("info", "Ассет: " + evt.path + " → " + evt.chosen); break;
-    case "codeConflictsResolved": appendLog("success", "Разрешено конфликтов кода: " + evt.count); break;
+    case "packaging": appendLog("info", tr("msg.packaging")); break;
+    case "assetResolved": appendLog("info", tr("msg.assetResolved", { path: evt.path, chosen: evt.chosen })); break;
+    case "codeConflictsResolved": appendLog("success", tr("msg.codeConflictsResolved", { count: evt.count })); break;
     case "stats": showResults(evt); break;
     default: break;
   }
@@ -242,17 +247,17 @@ function closeModal() {
 function showCodeConflict(id, r) {
   const body = el("conflictBody");
   body.innerHTML = `
-    <h3>Конфликт кода</h3>
-    <p class="file">Файл: ${escapeHtml(r.file)} (база, строка ${r.baseLine} / мод, строка ${r.incomingLine})</p>
+    <h3>${escapeHtml(tr("conflict.codeTitle"))}</h3>
+    <p class="file">${escapeHtml(tr("conflict.fileLine", { file: r.file, baseLine: r.baseLine, incomingLine: r.incomingLine }))}</p>
     <div class="diff">
-      <div class="side"><h4>База: ${escapeHtml(r.baseModName)}</h4><pre>${escapeHtml(r.baseText)}</pre></div>
-      <div class="side"><h4>Мод: ${escapeHtml(r.incomingModName)}</h4><pre>${escapeHtml(r.incomingText)}</pre></div>
+      <div class="side"><h4>${escapeHtml(tr("conflict.base", { name: r.baseModName }))}</h4><pre>${escapeHtml(r.baseText)}</pre></div>
+      <div class="side"><h4>${escapeHtml(tr("conflict.mod", { name: r.incomingModName }))}</h4><pre>${escapeHtml(r.incomingText)}</pre></div>
     </div>
     <div class="modal-actions">
-      <button class="btn" data-choice="1">Оставить базу</button>
-      <button class="btn primary" data-choice="2">Взять мод</button>
-      <button class="btn" data-choice="3">Везде база</button>
-      <button class="btn primary" data-choice="4">Везде мод</button>
+      <button class="btn" data-choice="1">${escapeHtml(tr("conflict.keepBase"))}</button>
+      <button class="btn primary" data-choice="2">${escapeHtml(tr("conflict.takeMod"))}</button>
+      <button class="btn" data-choice="3">${escapeHtml(tr("conflict.baseEverywhere"))}</button>
+      <button class="btn primary" data-choice="4">${escapeHtml(tr("conflict.modEverywhere"))}</button>
     </div>`;
   body.querySelectorAll("button[data-choice]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -267,9 +272,9 @@ function showAssetConflict(id, r) {
   const body = el("conflictBody");
   const opts = (r.options || []).map((o, i) => `<button class="btn" data-choice="${i + 1}">${escapeHtml(o)}</button>`).join("");
   body.innerHTML = `
-    <h3>Конфликт ассета</h3>
+    <h3>${escapeHtml(tr("conflict.assetTitle"))}</h3>
     <p class="file">${escapeHtml(r.path)}</p>
-    <p class="hint">Несколько модов содержат этот файл. Выберите версию:</p>
+    <p class="hint">${escapeHtml(tr("conflict.assetHint"))}</p>
     <div class="opt-list">${opts}</div>`;
   body.querySelectorAll("button[data-choice]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -287,7 +292,7 @@ async function runMerge() {
   const btn = el("mergeBtn");
   const label = el("mergeBtnLabel");
   btn.classList.add("busy");
-  label.textContent = "Объединение...";
+  label.textContent = tr("action.merging");
   el("resultPanel").hidden = true;
   el("progressWrap").hidden = false;
   setProgress(0, 1, "");
@@ -299,15 +304,15 @@ async function runMerge() {
   try {
     const summary = await smm.runMerge(options);
     setProgress(totalFiles || 1, totalFiles || 1, "");
-    appendLog("success", "Готово за " + summary.tookMs + " мс. Результат: " + summary.output);
+    appendLog("success", tr("msg.mergeDone", { ms: summary.tookMs, output: summary.output }));
     showResults(summary);
   } catch (e) {
     const msg = e && e.message ? e.message : String(e);
-    appendLog("error", "Ошибка слияния: " + msg);
+    appendLog("error", tr("msg.mergeError", { error: msg }));
   } finally {
     merging = false;
     btn.classList.remove("busy");
-    label.textContent = "Объединить";
+    label.textContent = tr("action.merge");
     updateMergeButton();
   }
 }
@@ -318,7 +323,7 @@ function wire() {
   el("clearLog").addEventListener("click", () => { el("log").innerHTML = ""; });
   el("importPak").addEventListener("click", async () => {
     const name = await smm.importBasePak();
-    if (name) appendLog("success", "Импортирован базовый пак: " + name);
+    if (name) appendLog("success", tr("msg.baseImported", { name }));
     await refreshStatus();
   });
   el("mergeBtn").addEventListener("click", runMerge);
@@ -328,7 +333,22 @@ function wire() {
     if (req.kind === "code") showCodeConflict(req.id, req.request);
     else showAssetConflict(req.id, req.request);
   });
+  // Re-render runtime-generated text (badges, button label, mod list, stats)
+  // whenever the user switches language. Static markup is handled by i18n.js.
+  document.addEventListener("i18n:applied", applyDynamic);
+}
+
+/** Refresh the strings that renderer.js generates at runtime to the active locale. */
+function applyDynamic() {
+  const libsBadge = el("libsBadge");
+  if (libsBadge) {
+    libsBadge.textContent = lastStatus.hasBasePak ? tr("libs.badgeFound") : tr("libs.badgeMissing");
+  }
+  const label = el("mergeBtnLabel");
+  if (label) label.textContent = merging ? tr("action.merging") : tr("action.merge");
+  renderMods(lastStatus.mods);
+  if (lastStats && !el("resultPanel").hidden) showResults(lastStats);
 }
 
 wire();
-refreshStatus().then(() => console.log("RENDERER_READY")).catch((e) => appendLog("error", "Не удалось получить статус: " + String(e)));
+refreshStatus().then(() => console.log("RENDERER_READY")).catch((e) => appendLog("error", tr("msg.statusError", { error: String(e) })));

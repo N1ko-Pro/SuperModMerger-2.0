@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self';" />
   <title>Super Mod Merger</title>
-  <link rel="stylesheet" href="styles.css?v=11" />
+  <link rel="stylesheet" href="styles.css?v=12" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true">
@@ -14,7 +14,50 @@
 
   <!-- Custom title bar -->
   <header class="titlebar">
-    <div class="tb-side tb-left"></div>
+    <div class="tb-side tb-left">
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button class="lang-btn" id="langRu" data-locale="ru" title="Русский" aria-label="Русский">
+          <svg viewBox="0 0 24 16" width="22" height="16" aria-hidden="true">
+            <defs><clipPath id="flagRu"><rect width="24" height="16" rx="2.5"/></clipPath></defs>
+            <g clip-path="url(#flagRu)">
+              <rect width="24" height="16" fill="#ffffff"/>
+              <rect y="5.33" width="24" height="5.34" fill="#0039a6"/>
+              <rect y="10.67" width="24" height="5.33" fill="#d52b1e"/>
+            </g>
+          </svg>
+        </button>
+        <button class="lang-btn" id="langEn" data-locale="en" title="English" aria-label="English">
+          <svg viewBox="0 0 24 16" width="22" height="16" aria-hidden="true">
+            <defs><clipPath id="flagEn"><rect width="24" height="16" rx="2.5"/></clipPath></defs>
+            <g clip-path="url(#flagEn)">
+              <rect width="24" height="16" fill="#012169"/>
+              <path d="M0 0L24 16M24 0L0 16" stroke="#ffffff" stroke-width="3.2"/>
+              <path d="M0 0L24 16M24 0L0 16" stroke="#c8102e" stroke-width="1.8"/>
+              <rect x="9.5" width="5" height="16" fill="#ffffff"/>
+              <rect y="5.5" width="24" height="5" fill="#ffffff"/>
+              <rect x="10.5" width="3" height="16" fill="#c8102e"/>
+              <rect y="6.5" width="24" height="3" fill="#c8102e"/>
+            </g>
+          </svg>
+        </button>
+        <button class="lang-btn" id="langCn" data-locale="cn" title="中文" aria-label="中文">
+          <svg viewBox="0 0 24 16" width="22" height="16" aria-hidden="true">
+            <defs>
+              <clipPath id="flagCn"><rect width="24" height="16" rx="2.5"/></clipPath>
+              <path id="cnStar" d="M0,-1 0.2246,-0.309 0.951,-0.309 0.3633,0.1181 0.588,0.809 0,0.382 -0.588,0.809 -0.3633,0.1181 -0.951,-0.309 -0.2246,-0.309Z" fill="#ffde00"/>
+            </defs>
+            <g clip-path="url(#flagCn)">
+              <rect width="24" height="16" fill="#de2910"/>
+              <use href="#cnStar" transform="translate(4,4) scale(2.4)"/>
+              <use href="#cnStar" transform="translate(8,1.6) scale(0.8)"/>
+              <use href="#cnStar" transform="translate(9.6,3.2) scale(0.8)"/>
+              <use href="#cnStar" transform="translate(9.6,5.6) scale(0.8)"/>
+              <use href="#cnStar" transform="translate(8,7.2) scale(0.8)"/>
+            </g>
+          </svg>
+        </button>
+      </div>
+    </div>
     <div class="tb-brand">
       <span class="mark" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
@@ -26,13 +69,13 @@
       <span class="wordmark">SUPER&nbsp;MOD&nbsp;MERGER</span>
     </div>
     <div class="tb-side tb-right">
-      <button class="win-btn" id="winMin" title="Свернуть" aria-label="Свернуть">
+      <button class="win-btn" id="winMin" data-i18n-title="titlebar.minimize" data-i18n-aria="titlebar.minimize" title="Свернуть" aria-label="Свернуть">
         <svg viewBox="0 0 12 12" width="11" height="11"><path d="M2 6h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
       </button>
-      <button class="win-btn" id="winMax" title="Развернуть" aria-label="Развернуть">
+      <button class="win-btn" id="winMax" data-i18n-title="titlebar.maximize" data-i18n-aria="titlebar.maximize" title="Развернуть" aria-label="Развернуть">
         <svg viewBox="0 0 12 12" width="11" height="11"><rect x="2.3" y="2.3" width="7.4" height="7.4" rx="1.3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
       </button>
-      <button class="win-btn danger" id="winClose" title="Закрыть" aria-label="Закрыть">
+      <button class="win-btn danger" id="winClose" data-i18n-title="titlebar.close" data-i18n-aria="titlebar.close" title="Закрыть" aria-label="Закрыть">
         <svg viewBox="0 0 12 12" width="11" height="11"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
       </button>
     </div>
@@ -41,7 +84,7 @@
   <main class="layout">
     <!-- Hero -->
     <section class="hero">
-      <h1>Слияние модов: DLB</h1>
+      <h1 data-i18n="hero.title">Слияние модов: DLB</h1>
     </section>
 
     <!-- Source / mods / settings -->
@@ -56,25 +99,25 @@
             </svg>
           </span>
           <div class="card-titles">
-            <h2>Игровые данные</h2>
-            <span class="card-desc">Базовый <b>data0.pak</b> из игры</span>
+            <h2 data-i18n="libs.title">Игровые данные</h2>
+            <span class="card-desc" data-i18n-html="libs.desc">Базовый <b>data0.pak</b> из игры</span>
           </div>
-          <span class="badge" id="libsBadge">проверка...</span>
+          <span class="badge" id="libsBadge" data-i18n="libs.badgeChecking">проверка...</span>
         </div>
         <p class="path" id="libsPath"></p>
-        <p class="hint" id="libsHint">Нажмите <b>Авто-поиск</b>, чтобы найти файл в установленной игре, или импортируйте вручную.</p>
+        <p class="hint" id="libsHint" data-i18n-html="libs.hint">Нажмите <b>Авто-поиск</b>, чтобы найти файл в установленной игре, или импортируйте вручную.</p>
         <p class="ok-status" id="libsStatus" hidden>
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M8 12.3l2.6 2.6L16 9.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span>Готово к работе</span>
+          <span data-i18n="libs.ready">Готово к работе</span>
         </p>
         <div class="row" id="libsActions">
           <button class="btn green" id="autoFind">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="M16 16l4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            <span>Авто-поиск</span>
+            <span data-i18n="libs.autoFind">Авто-поиск</span>
           </button>
           <button class="btn blue" id="importPak">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M12 4v10m0 0l-3.5-3.5M12 14l3.5-3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 17v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            <span>Импорт</span>
+            <span data-i18n="libs.import">Импорт</span>
           </button>
         </div>
       </div>
@@ -88,8 +131,8 @@
             </svg>
           </span>
           <div class="card-titles">
-            <h2>Моды для слияния</h2>
-            <span class="card-desc">Перетащите или выберите файлы</span>
+            <h2 data-i18n="mods.title">Моды для слияния</h2>
+            <span class="card-desc" data-i18n="mods.desc">Перетащите или выберите файлы</span>
           </div>
           <span class="badge" id="modsBadge">0</span>
         </div>
@@ -98,8 +141,8 @@
           <span class="dz-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.2h6a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
           </span>
-          <div class="dz-title">Перетащите мод сюда</div>
-          <div class="dz-sub">или нажмите, чтобы выбрать</div>
+          <div class="dz-title" data-i18n="mods.dzTitle">Перетащите мод сюда</div>
+          <div class="dz-sub" data-i18n="mods.dzSub">или нажмите, чтобы выбрать</div>
           <div class="dz-formats"><span>PAK</span><span>ZIP</span><span>7Z</span><span>RAR</span></div>
         </div>
 
@@ -107,7 +150,7 @@
 
         <div class="lock-veil" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.6"/></svg>
-          <span>Сначала укажите <b>data0.pak</b></span>
+          <span data-i18n-html="mods.locked">Сначала укажите <b>data0.pak</b></span>
         </div>
       </div>
 
@@ -121,36 +164,36 @@
             </svg>
           </span>
           <div class="card-titles">
-            <h2>Настройки</h2>
-            <span class="card-desc">Стратегия и разрешение конфликтов</span>
+            <h2 data-i18n="settings.title">Настройки</h2>
+            <span class="card-desc" data-i18n="settings.desc">Стратегия и разрешение конфликтов</span>
           </div>
         </div>
-        <label class="field"><span>Стратегия слияния</span>
+        <label class="field"><span data-i18n="settings.strategyLabel">Стратегия слияния</span>
           <select id="strategy">
-            <option value="normal">Обычная (быстро)</option>
-            <option value="globalfix">Глобальное исправление</option>
+            <option value="normal" data-i18n="settings.strategyNormal">Обычная (рекомендуется)</option>
+            <option value="globalfix" data-i18n="settings.strategyGlobal">Глобальное исправление (экспериментальная)</option>
           </select>
         </label>
-        <label class="field"><span>Конфликты кода</span>
+        <label class="field"><span data-i18n="settings.codeLabel">Конфликты кода</span>
           <select id="codeConflict">
-            <option value="incoming">Авто — версия мода</option>
-            <option value="base">Авто — версия базы</option>
-            <option value="interactive">Спрашивать меня</option>
+            <option value="incoming" data-i18n="settings.codeIncoming">Авто — версия мода</option>
+            <option value="base" data-i18n="settings.codeBase">Авто — версия базы</option>
+            <option value="interactive" data-i18n="settings.codeInteractive">Спрашивать меня</option>
           </select>
         </label>
-        <label class="field"><span>Конфликты ассетов</span>
+        <label class="field"><span data-i18n="settings.assetLabel">Конфликты ассетов</span>
           <select id="assetConflict">
-            <option value="largest">Наибольший файл</option>
-            <option value="smallest">Наименьший файл</option>
-            <option value="first">Первый</option>
-            <option value="last">Последний</option>
-            <option value="interactive">Спрашивать меня</option>
+            <option value="largest" data-i18n="settings.assetLargest">Наибольший файл</option>
+            <option value="smallest" data-i18n="settings.assetSmallest">Наименьший файл</option>
+            <option value="first" data-i18n="settings.assetFirst">Первый</option>
+            <option value="last" data-i18n="settings.assetLast">Последний</option>
+            <option value="interactive" data-i18n="settings.assetInteractive">Спрашивать меня</option>
           </select>
         </label>
 
         <div class="lock-veil" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.6"/></svg>
-          <span>Сначала укажите <b>data0.pak</b></span>
+          <span data-i18n-html="settings.locked">Сначала укажите <b>data0.pak</b></span>
         </div>
       </div>
     </section>
@@ -158,7 +201,7 @@
     <!-- Action -->
     <section class="action">
       <button class="merge-btn" id="mergeBtn" disabled>
-        <span id="mergeBtnLabel">Объединить</span>
+        <span id="mergeBtnLabel" data-i18n="action.merge">Объединить</span>
         <svg class="arrow" viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <div class="progress" id="progressWrap" hidden>
@@ -169,12 +212,12 @@
 
     <!-- Result -->
     <section class="result" id="resultPanel" hidden>
-      <div class="divider"><span class="pill">Слияние завершено</span></div>
+      <div class="divider"><span class="pill" data-i18n="result.done">Слияние завершено</span></div>
       <div class="stats" id="statsGrid"></div>
       <div class="result-actions">
         <button class="btn green" id="openOutput">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.2h6a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
-          <span>Открыть папку с результатом</span>
+          <span data-i18n="result.openOutput">Открыть папку с результатом</span>
         </button>
       </div>
     </section>
@@ -184,21 +227,21 @@
       <div class="divider">
         <span class="pill">
           <svg viewBox="0 0 24 24" width="13" height="13" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.5"/><path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          Журнал
+          <span data-i18n="log.title"></span>Журнал</span>
         </span>
       </div>
       <div class="log-box">
-        <button class="clear-btn" id="clearLog" title="Очистить журнал">
+        <button class="clear-btn" id="clearLog" data-i18n-title="log.clearTitle" title="Очистить журнал">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span>Очистить</span>
+          <span data-i18n="log.clear">Очистить</span>
         </button>
         <div class="log" id="log"></div>
       </div>
     </section>
 
     <footer class="footer">
-      <span>© 2026 ANICKON. Все права защищены.</span>
-      <span>Версия 2.0</span>
+      <span data-i18n="footer.rights">© 2026 ANICKON & ANKOLS. Все права защищены.</span>
+      <span data-i18n="footer.version">Версия 2.0</span>
     </footer>
   </main>
 
@@ -206,7 +249,11 @@
     <div class="modal" id="conflictBody"></div>
   </div>
 
-  <script src="ui-fx.js?v=10"></script>
-  <script src="renderer.js?v=10"></script>
+  <script src="i18n/ru.js?v=1"></script>
+  <script src="i18n/en.js?v=1"></script>
+  <script src="i18n/cn.js?v=1"></script>
+  <script src="i18n.js?v=1"></script>
+  <script src="ui-fx.js?v=11"></script>
+  <script src="renderer.js?v=11"></script>
 </body>
 </html>

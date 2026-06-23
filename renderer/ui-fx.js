@@ -7,7 +7,22 @@
 
   function byId(id) { return document.getElementById(id); }
 
+  function tr(key, fallback) {
+    return (window.i18n && typeof window.i18n.t === "function") ? window.i18n.t(key) : fallback;
+  }
+
   /* --- Custom window controls (frameless window) -------------------------- */
+  var isMaximized = false;
+
+  function setMaxButton(max) {
+    if (!max) return;
+    max.innerHTML = isMaximized
+      ? '<svg viewBox="0 0 12 12" width="11" height="11"><rect x="2" y="3.4" width="6.6" height="6.6" rx="1.2" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M4 3.4V2.2a1.2 1.2 0 0 1 1.2-1.2H9.8" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>'
+      : '<svg viewBox="0 0 12 12" width="11" height="11"><rect x="2.3" y="2.3" width="7.4" height="7.4" rx="1.3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>';
+    max.title = isMaximized ? tr("titlebar.restore", "Восстановить") : tr("titlebar.maximize", "Развернуть");
+    max.setAttribute("aria-label", max.title);
+  }
+
   function wireWindowControls() {
     var api = window.api;
     if (!api) return;
@@ -22,16 +37,15 @@
 
     if (api.onWinState && max) {
       api.onWinState(function (state) {
-        max.innerHTML = state.maximized
-          ? '<svg viewBox="0 0 12 12" width="11" height="11"><rect x="2" y="3.4" width="6.6" height="6.6" rx="1.2" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M4 3.4V2.2a1.2 1.2 0 0 1 1.2-1.2H9.8" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>'
-          : '<svg viewBox="0 0 12 12" width="11" height="11"><rect x="2.3" y="2.3" width="7.4" height="7.4" rx="1.3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>';
-        max.title = state.maximized ? "Восстановить" : "Развернуть";
+        isMaximized = !!state.maximized;
+        setMaxButton(max);
       });
     }
   }
 
   /* --- Custom dropdowns (replace native <select>) ------------------------- */
   var openSelect = null;
+  var builtSelects = [];
 
   function closeAll() {
     if (openSelect) {
@@ -134,6 +148,24 @@
     native.parentNode.appendChild(wrap);
 
     syncLabel();
+
+    // Register so labels can be refreshed when the UI language changes.
+    builtSelects.push({ native: native, menu: menu, syncLabel: syncLabel });
+  }
+
+  /**
+   * After a locale switch, i18n.js has re-translated the hidden native <option>
+   * elements. Copy that text onto the visible custom options and re-sync labels.
+   */
+  function refreshSelectLabels() {
+    builtSelects.forEach(function (rec) {
+      Array.prototype.forEach.call(rec.menu.children, function (item) {
+        var v = item.getAttribute("data-value");
+        var opt = Array.prototype.filter.call(rec.native.options, function (o) { return o.value === v; })[0];
+        if (opt) item.textContent = opt.textContent;
+      });
+      rec.syncLabel();
+    });
   }
 
   function enhanceSelects() {
@@ -144,6 +176,9 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeAll(); });
     var layout = document.querySelector(".layout");
     if (layout) layout.addEventListener("scroll", closeAll, { passive: true });
+
+    // Keep custom dropdown labels in sync with the active language.
+    document.addEventListener("i18n:applied", refreshSelectLabels);
   }
 
   function init() {
