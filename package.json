@@ -8,6 +8,7 @@
   "build": "node build.js",
   "watch": "node build.js --watch",
   "start": "electron .",
+  "icon": "electron tools/gen-icon.js",
   "dev": "node build.js && electron .",
  "dist": "node build.js && electron-builder --win portable"
  },
@@ -18,7 +19,7 @@
  "directories": { "output": "release" },
  "files": ["dist/**/*", "renderer/**/*", "package.json", "node_modules/**/*"],
  "asarUnpack": ["node_modules/7zip-bin/**", "node_modules/node-unrar-js/**"],
- "win": { "target": ["portable"] },
+ "win": { "target": ["portable"], "icon": "build/icon.ico" },
  "portable": { "artifactName": "SuperModMerger-${version}-portable.exe" }
  },
  "author": "",

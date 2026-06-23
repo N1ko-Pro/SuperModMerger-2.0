@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8" /></head>
+<body>
+<script>
+/* Draws the Super Mod Merger app icon at an arbitrary square size and returns
+   the result as a base64 PNG (no data: prefix). The emblem mirrors the
+   title-bar ".mark" logo: outer ring + tilted orbit ellipse + core dot,
+   white on the near-black app background (#0a0a0c). */
+function roundRectPath(ctx, x, y, w, h, r) {
+  if (typeof ctx.roundRect === "function") { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); return; }
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function renderIcon(size) {
+  var c = document.createElement("canvas");
+  c.width = size; c.height = size;
+  var x = c.getContext("2d");
+  x.clearRect(0, 0, size, size);
+
+  /* ---- rounded-square background --------------------------------------- */
+  var r = size * 0.2237;
+  roundRectPath(x, 0, 0, size, size, r);
+  var bg = x.createLinearGradient(0, 0, 0, size);
+  bg.addColorStop(0, "#17171c");
+  bg.addColorStop(0.55, "#0d0d11");
+  bg.addColorStop(1, "#08080a");
+  x.fillStyle = bg;
+  x.fill();
+
+  /* soft top sheen for depth */
+  x.save();
+  roundRectPath(x, 0, 0, size, size, r);
+  x.clip();
+  var sheen = x.createRadialGradient(size * 0.5, -size * 0.15, size * 0.1, size * 0.5, -size * 0.15, size * 0.9);
+  sheen.addColorStop(0, "rgba(255,255,255,0.10)");
+  sheen.addColorStop(1, "rgba(255,255,255,0)");
+  x.fillStyle = sheen;
+  x.fillRect(0, 0, size, size);
+  x.restore();
+
+  /* hairline inner border */
+  var bw = Math.max(1, size * 0.012);
+  roundRectPath(x, bw / 2, bw / 2, size - bw, size - bw, r - bw / 2);
+  x.lineWidth = bw;
+  x.strokeStyle = "rgba(255,255,255,0.07)";
+  x.stroke();
+
+  /* ---- orbit emblem (24-unit viewBox mapped onto the tile) ------------- */
+  var box = size * 0.66;          // px occupied by the 24-unit design
+  var u = box / 24;               // one design unit in px
+  x.save();
+  x.translate(size / 2, size / 2);
+  x.lineCap = "round";
+  x.lineJoin = "round";
+  x.strokeStyle = "rgba(255,255,255,0.95)";
+  x.fillStyle = "rgba(255,255,255,0.95)";
+
+  /* outer ring: r=8.5, stroke 1.4 */
+  x.lineWidth = Math.max(size * 0.02, 1.4 * u);
+  x.beginPath();
+  x.arc(0, 0, 8.5 * u, 0, Math.PI * 2);
+  x.stroke();
+
+  /* orbit ellipse: rx=8.5 ry=3.4 rotated -30deg, stroke 1.2 */
+  x.lineWidth = Math.max(size * 0.017, 1.2 * u);
+  x.beginPath();
+  x.ellipse(0, 0, 8.5 * u, 3.4 * u, -Math.PI / 6, 0, Math.PI * 2);
+  x.stroke();
+
+  /* core dot: r=1.8 filled */
+  x.beginPath();
+  x.arc(0, 0, Math.max(size * 0.045, 1.8 * u), 0, Math.PI * 2);
+  x.fill();
+  x.restore();
+
+  return c.toDataURL("image/png").split(",")[1];
+}
+window.renderIcon = renderIcon;
+</script>
+</body>
+</html>
